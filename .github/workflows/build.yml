@@ -28,7 +28,7 @@ jobs:
         pyinstaller --onefile --name=opcua_exporter exporter.py
 
     - name: Upload build artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v3.1.3
       with:
         name: opcua_exporter_exe
         path: dist/opcua_exporter.exe
