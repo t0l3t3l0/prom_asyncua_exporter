@@ -24,6 +24,7 @@ from asyncua import Client
 import prometheus_client
 import socket
 import logging
+from asyncua.client.client_secured import ClientSecured
 
 @dataclasses.dataclass
 class OPCUAGauge:
@@ -31,6 +32,12 @@ class OPCUAGauge:
     node_path: str
     description: str
     gauge: prometheus_client.Gauge
+
+# Patch the asyncua security validator to accept all certificates
+def always_accept_cert(self, cert):
+    return True
+
+ClientSecured._validate_certificate = always_accept_cert
 
 # Read configuration and nodes from YAML file.
 def read_yaml_config(filename: str) -> tuple:
