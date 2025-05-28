@@ -1,4 +1,4 @@
-name: Build EXE with PyInstaller
+name: Build EXE with PyInstaller (No Actions Used)
 
 on:
   workflow_dispatch:
@@ -9,14 +9,10 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
-
+      run: |
+        git clone ${{ github.repositoryUrl }} .
+    
     - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.9'
-
-    - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install pyinstaller
@@ -26,8 +22,12 @@ jobs:
       run: |
         pyinstaller --onefile --name=opcua_exporter exporter.py
 
-    - name: Upload EXE
-      uses: actions/upload-artifact@v3
-      with:
-        name: opcua_exporter_exe
-        path: dist/opcua_exporter.exe
+    - name: Archive EXE to zip
+      run: Compress-Archive -Path dist\opcua_exporter.exe -DestinationPath opcua_exporter.zip
+
+    - name: Print base64 to logs
+      run: |
+        $bytes = [System.IO.File]::ReadAllBytes("opcua_exporter.zip")
+        $encoded = [Convert]::ToBase64String($bytes)
+        Set-Content -Path opcua_exporter_b64.txt -Value $encoded
+        Get-Content opcua_exporter_b64.txt
