@@ -25,17 +25,6 @@ import prometheus_client
 import socket
 import logging
 
-# Patch to trust all server certificates
-try:
-    from asyncua.client.client import ClientSecured
-except ImportError:
-    from asyncua.client._client import ClientSecured
-
-def always_accept_cert(self, cert):
-    return True
-
-ClientSecured._validate_certificate = always_accept_cert
-
 @dataclasses.dataclass
 class OPCUAGauge:
     metric_name: str
@@ -70,6 +59,9 @@ async def query_server(url: str, username: Optional[str], password: Optional[str
     while True:
         try:
             async with Client(url=url) as opcua_client:
+                # Accept all server certificates
+                opcua_client.set_certificate_accept_all(True)
+                
                 # Always disable security
                 await opcua_client.set_security_string("None")
                 
