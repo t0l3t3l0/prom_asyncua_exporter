@@ -59,6 +59,10 @@ async def query_server(url: str, username: Optional[str], password: Optional[str
     while True:
         try:
             async with Client(url=url) as opcua_client:
+                # Disable security and certificates
+                opcua_client.security_mode = ua.SecurityMode.None_
+                opcua_client.security_policy = None
+                
                 # Set the username and password for authentication if provided.
                 if username and password:
                     opcua_client.set_user(username)
