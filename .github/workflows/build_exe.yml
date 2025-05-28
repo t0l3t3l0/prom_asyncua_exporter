@@ -1,4 +1,4 @@
-name: Build EXE
+name: Build and Push EXE
 
 on:
   push:
@@ -29,17 +29,21 @@ jobs:
       - name: Build executable with PyInstaller
         run: pyinstaller --onefile exporter.py
 
-      - name: Copy .exe to bin folder
+      - name: Add timestamp and copy .exe to bin folder
+        shell: powershell
         run: |
-          mkdir bin
-          copy dist\exporter.exe bin\opcua_exporter.exe
+          $timestamp = Get-Date -Format "yyyy-MM-dd_HHmm"
+          $outputName = "opcua_exporter_$timestamp.exe"
+          mkdir bin -Force
+          Copy-Item "dist\exporter.exe" -Destination "bin\$outputName"
+          echo "EXE_FILENAME=$outputName" >> $env:GITHUB_ENV
 
       - name: Commit and push executable
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add bin/opcua_exporter.exe
-          git commit -m "Add built exporter.exe" || echo "No changes to commit"
+          git add bin
+          git commit -m "Add built ${{ env.EXE_FILENAME }}" || echo "No changes to commit"
           git push origin main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
