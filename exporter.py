@@ -20,7 +20,7 @@ import yaml
 from typing import List, Optional
 import dataclasses
 import asyncio
-from asyncua import Client, ua
+from asyncua import Client
 import prometheus_client
 import socket
 import logging
@@ -67,6 +67,7 @@ async def query_server(url: str, username: Optional[str], password: Optional[str
                 if username and password:
                     opcua_client.set_user(username)
                     opcua_client.set_password(password)
+                    await opcua_client.set_security_string("None")
                 for node in nodes:
                     try:
                         var = opcua_client.get_node(node["node_path"])
@@ -83,8 +84,8 @@ async def query_server(url: str, username: Optional[str], password: Optional[str
             # Set metric value to NaN when hostname resolution fails.
             for node in nodes:
                 node["gauge"].labels(server=url).set(float('NaN'))
-        #except Exception as e:
-            #logging.error(f"Connection to OPC UA server {url} failed: {e}")
+        except Exception as e:
+            logging.error(f"Connection to OPC UA server {url} failed: {e}")
             # Set metric value to NaN when connection fails.
             for node in nodes:
                 node["gauge"].labels(server=url).set(float('NaN'))
