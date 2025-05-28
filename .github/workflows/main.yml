@@ -1,0 +1,45 @@
+name: Build and Push EXE
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Build executable with PyInstaller
+        run: pyinstaller --onefile exporter.py
+
+      - name: Copy .exe to bin folder
+        run: |
+          mkdir bin
+          copy dist\exporter.exe bin\opcua_exporter.exe
+
+      - name: Commit and push executable
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add bin/opcua_exporter.exe
+          git commit -m "Add built exporter.exe" || echo "No changes to commit"
+          git push origin main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
