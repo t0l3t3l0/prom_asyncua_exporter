@@ -20,7 +20,7 @@ import yaml
 from typing import List, Optional
 import dataclasses
 import asyncio
-from asyncua import Client
+from asyncua import Client, ua
 import prometheus_client
 import socket
 import logging
