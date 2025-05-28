@@ -1,4 +1,4 @@
-name: Build EXE and Print Base64
+name: Build and Commit EXE Base64
 
 on:
   workflow_dispatch:
@@ -22,13 +22,21 @@ jobs:
         pip install -r requirements.txt
         pip install pyinstaller
 
-    - name: Build EXE with PyInstaller
-      run: |
-        pyinstaller --onefile --name=opcua_exporter exporter.py
+    - name: Build EXE
+      run: pyinstaller --onefile --name=opcua_exporter exporter.py
 
-    - name: Encode EXE to base64 and print
+    - name: Encode EXE to base64
       run: |
         $bytes = [System.IO.File]::ReadAllBytes("dist/opcua_exporter.exe")
-        $encoded = [Convert]::ToBase64String($bytes)
-        Set-Content -Path opcua_exporter_b64.txt -Value $encoded
-        Get-Content opcua_exporter_b64.txt
+        $b64 = [Convert]::ToBase64String($bytes)
+        Set-Content -Path opcua_exporter_b64.txt -Value $b64
+
+    - name: Commit base64 file back to repo
+      run: |
+        git config --global user.email "actions@github.com"
+        git config --global user.name "GitHub Actions"
+        git add opcua_exporter_b64.txt
+        git commit -m "Add Base64-encoded EXE"
+        git push
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
