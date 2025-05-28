@@ -24,7 +24,17 @@ from asyncua import Client
 import prometheus_client
 import socket
 import logging
-from asyncua.client.client_secured import ClientSecured
+
+# Patch to trust all server certificates
+try:
+    from asyncua.client.client import ClientSecured
+except ImportError:
+    from asyncua.client._client import ClientSecured
+
+def always_accept_cert(self, cert):
+    return True
+
+ClientSecured._validate_certificate = always_accept_cert
 
 @dataclasses.dataclass
 class OPCUAGauge:
@@ -32,12 +42,6 @@ class OPCUAGauge:
     node_path: str
     description: str
     gauge: prometheus_client.Gauge
-
-# Patch the asyncua security validator to accept all certificates
-def always_accept_cert(self, cert):
-    return True
-
-ClientSecured._validate_certificate = always_accept_cert
 
 # Read configuration and nodes from YAML file.
 def read_yaml_config(filename: str) -> tuple:
@@ -66,15 +70,14 @@ async def query_server(url: str, username: Optional[str], password: Optional[str
     while True:
         try:
             async with Client(url=url) as opcua_client:
-                # Disable security and certificates
-                #opcua_client.security_mode = ua.SecurityMode.None_
-                #opcua_client.security_policy = None
+                # Always disable security
+                await opcua_client.set_security_string("None")
                 
                 # Set the username and password for authentication if provided.
                 if username and password:
                     opcua_client.set_user(username)
                     opcua_client.set_password(password)
-                    await opcua_client.set_security_string("None")
+                    
                 for node in nodes:
                     try:
                         var = opcua_client.get_node(node["node_path"])
