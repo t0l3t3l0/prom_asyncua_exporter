@@ -59,8 +59,13 @@ async def query_server(url: str, username: Optional[str], password: Optional[str
     while True:
         try:
             async with Client(url=url) as opcua_client:
-                # Accept all server certificates
-                opcua_client.set_certificate_accept_all(True)
+                # Load and trust your server's certificate explicitly
+                with open("OpcUaServer_1901.der", "rb") as cert_file:
+                    server_cert_bytes = cert_file.read()
+                server_cert = crypto.x509.load_certificate(server_cert_bytes)
+
+                # Add it to the trusted certificate store
+                opcua_client.secure_channel.trusted_certificates.append(server_cert)
                 
                 # Set security to None explicitly (no encryption, no signing)
                 await opcua_client.set_security(
