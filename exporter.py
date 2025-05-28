@@ -60,8 +60,8 @@ async def query_server(url: str, username: Optional[str], password: Optional[str
         try:
             async with Client(url=url) as opcua_client:
                 # Disable security and certificates
-                opcua_client.security_mode = ua.SecurityMode.None_
-                opcua_client.security_policy = None
+                #opcua_client.security_mode = ua.SecurityMode.None_
+                #opcua_client.security_policy = None
                 
                 # Set the username and password for authentication if provided.
                 if username and password:
@@ -83,8 +83,8 @@ async def query_server(url: str, username: Optional[str], password: Optional[str
             # Set metric value to NaN when hostname resolution fails.
             for node in nodes:
                 node["gauge"].labels(server=url).set(float('NaN'))
-        except Exception as e:
-            logging.error(f"Connection to OPC UA server {url} failed: {e}")
+        #except Exception as e:
+            #logging.error(f"Connection to OPC UA server {url} failed: {e}")
             # Set metric value to NaN when connection fails.
             for node in nodes:
                 node["gauge"].labels(server=url).set(float('NaN'))
