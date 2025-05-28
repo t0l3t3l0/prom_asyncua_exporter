@@ -20,7 +20,7 @@ import yaml
 from typing import List, Optional
 import dataclasses
 import asyncio
-from asyncua import Client
+from asyncua import Client, crypto
 import prometheus_client
 import socket
 import logging
@@ -62,8 +62,12 @@ async def query_server(url: str, username: Optional[str], password: Optional[str
                 # Accept all server certificates
                 opcua_client.set_certificate_accept_all(True)
                 
-                # Always disable security
-                await opcua_client.set_security_string("None")
+                # Set security to None explicitly (no encryption, no signing)
+                await opcua_client.set_security(
+                    security_policy=crypto.SecurityPolicyType.NoSecurity,
+                    certificate=None,
+                    private_key=None
+                )
                 
                 # Set the username and password for authentication if provided.
                 if username and password:
